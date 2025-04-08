@@ -1,9 +1,6 @@
 package main
 
-import (
-	"fmt"
-	"time"
-)
+import "fmt"
 
 func main() {
 	//go helloSet1() // เขียน go ข้างหน้า จะเป็น goroutine ทันที
@@ -15,23 +12,37 @@ func main() {
 	// Create New Channel
 	ch := make(chan int)
 
+	//go func() {
+	//	time.Sleep(time.Second * 2)
+	//	fmt.Println("Test 1")
+	//	ch <- 20
+	//	ch <- 30
+	//}() // จบงาน ปิด thread
+	//// sent data to channel
+	////ch <- 10
+
+	//fmt.Println("Test 2")
+	//
+	//// get data from channel
+	//v := <-ch
+	//fmt.Println(v)
+	//
+	//v = <-ch
+	//fmt.Println(v)
+
+	// Loop Channel
 	go func() {
-		time.Sleep(time.Second * 2)
-		fmt.Println("Test 1")
+		ch <- 10
 		ch <- 20
 		ch <- 30
-	}() // จบงาน ปิด thread
-	// sent data to channel
-	//ch <- 10
+		ch <- 40
+		close(ch)
+	}()
 
-	fmt.Println("Test 2")
+	for v := range ch {
+		fmt.Println(v)
+	}
 
-	// get data from channel
-	v := <-ch
-	fmt.Println(v)
-
-	v = <-ch
-	fmt.Println(v)
 }
 
 //func helloSet1() {
