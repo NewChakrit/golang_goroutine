@@ -10,7 +10,7 @@ func main() {
 
 	// ================= Channel ================= //
 	// Create New Channel
-	ch := make(chan int)
+	//ch := make(chan int)
 
 	//go func() {
 	//	time.Sleep(time.Second * 2)
@@ -31,18 +31,54 @@ func main() {
 	//fmt.Println(v)
 
 	// Loop Channel
+	//go func() {
+	//	ch <- 10
+	//	ch <- 20
+	//	ch <- 30
+	//	ch <- 40
+	//	close(ch)
+	//}()
+	//
+	//for v := range ch {
+	//	fmt.Println(v)
+	//}
+
+	// Select  Channel
+
+	channel1 := make(chan int)
+	channel2 := make(chan int)
+
 	go func() {
-		ch <- 10
-		ch <- 20
-		ch <- 30
-		ch <- 40
-		close(ch)
+		channel1 <- 10
+		close(channel1) // เกิด infinity loop set channel1 = 0 ในครั้งต่อไป
 	}()
 
-	for v := range ch {
-		fmt.Println(v)
-	}
+	go func() {
+		channel2 <- 20
+		close(channel2) // เกิด infinity loop set channel2 = 0 ในครั้งต่อไป
+	}()
 
+	closedChannel1, closedChannel2 := false, false
+
+	for {
+		if closedChannel1 && closedChannel2 {
+			break
+		}
+		select {
+		case v, ok := <-channel1:
+			if !ok {
+				closedChannel1 = true
+				continue
+			}
+			fmt.Println("Channel1", v)
+		case v, ok := <-channel2:
+			if !ok {
+				closedChannel2 = true
+				continue
+			}
+			fmt.Println("Channel2", v)
+		}
+	}
 }
 
 //func helloSet1() {
