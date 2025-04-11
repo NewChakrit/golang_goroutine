@@ -1,6 +1,15 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"math/rand"
+	"sync"
+	"time"
+)
+
+var m sync.Mutex
+
+var n = 10
 
 func main() {
 	//go helloSet1() // เขียน go ข้างหน้า จะเป็น goroutine ทันที
@@ -79,6 +88,144 @@ func main() {
 			fmt.Println("Channel2", v)
 		}
 	}
+
+	// =============== Sync =============== //
+	// WaitGroup
+
+	var wg sync.WaitGroup
+
+	// Launch several goroutines and increment the WaitGroup counter for each
+	wg.Add(5)
+	for i := 1; i <= 5; i++ {
+		go worker(i, &wg)
+	}
+
+	wg.Wait() // Block until the WaitGroup counter goes back to 0; all workers are done
+
+	fmt.Println("All workers completed")
+
+	// Mutex
+
+	fmt.Println("FIRST")
+	go p()
+	fmt.Println("SECOND")
+	p()
+	fmt.Println("THIRD")
+	time.Sleep(3 * time.Second)
+	fmt.Println("DONE")
+
+	//var wg sync.WaitGroup
+	counter := Counter{}
+
+	// Start 10 goroutines
+	for i := 0; i < 10; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for j := 0; j < 100; j++ {
+				counter.Increment()
+			}
+		}()
+	}
+
+	wg.Wait() // Wait for all goroutines to finish
+	fmt.Println("Final counter value:", counter.Value())
+
+	// Once
+	var once sync.Once
+	//var wg sync.WaitGroup
+
+	initialize := func() {
+		fmt.Println("Initializing only once")
+	}
+
+	doWork := func(workerId int) {
+		defer wg.Done()
+		fmt.Printf("Worker %d started\n", workerId)
+		once.Do(initialize) // This will only be executed once
+		fmt.Printf("Worker %d done\n", workerId)
+	}
+
+	numWorkers := 5
+	wg.Add(numWorkers)
+
+	// Launch several goroutines
+	for i := 0; i < numWorkers; i++ {
+		go doWork(i)
+	}
+
+	// Wait for all goroutines to complete
+	wg.Wait()
+	fmt.Println("All workers completed")
+
+	// Cond
+	//var once sync.Once
+	//var wg sync.WaitGroup
+
+	//initialize := func() {
+	//	fmt.Println("Initializing only once")
+	//}
+	//
+	//doWork := func(workerId int) {
+	//	defer wg.Done()
+	//	fmt.Printf("Worker %d started\n", workerId)
+	//	once.Do(initialize) // This will only be executed once
+	//	fmt.Printf("Worker %d done\n", workerId)
+	//}
+	//
+	//numWorkers := 5
+	//wg.Add(numWorkers)
+	//
+	//// Launch several goroutines
+	//for i := 0; i < numWorkers; i++ {
+	//	go doWork(i)
+	//}
+	//
+	//// Wait for all goroutines to complete
+	//wg.Wait()
+	//fmt.Println("All workers completed")
+}
+
+func worker(id int, wg *sync.WaitGroup) {
+	defer wg.Done() // D≠ecrement the counter when the goroutine completes
+
+	fmt.Printf("Worker %d starting\n", id)
+
+	// Simulate some work by sleeping
+	sleepDuration := time.Duration(rand.Intn(1000)) * time.Millisecond
+	time.Sleep(sleepDuration)
+
+	fmt.Printf("Worker %d done\n", id)
+}
+
+func p() {
+	m.Lock()
+	fmt.Println("LOCK")
+
+	fmt.Println(n)
+
+	time.Sleep(1 * time.Second)
+	m.Unlock()
+
+	fmt.Println("UNLOCK")
+}
+
+// Counter struct holds a value and a mutex
+type Counter struct {
+	value int
+	mu    sync.Mutex
+}
+
+// Increment method increments the counter's value safely using the mutex
+func (c *Counter) Increment() {
+	c.mu.Lock()   // Lock the mutex before accessing the value
+	c.value++     // Increment the value
+	c.mu.Unlock() // Unlock the mutex after accessing the value
+}
+
+// Value method returns the current value of the counter
+func (c *Counter) Value() int {
+	return c.value
 }
 
 //func helloSet1() {
