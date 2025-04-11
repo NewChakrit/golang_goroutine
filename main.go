@@ -12,6 +12,7 @@ var m sync.Mutex
 var n = 10
 
 func main() {
+
 	//go helloSet1() // เขียน go ข้างหน้า จะเป็น goroutine ทันที
 	//helloSet2()
 	//
@@ -210,7 +211,8 @@ func main() {
 	//time.Sleep(5 * time.Second)
 
 	//Pubsub()
-	Cronjob()
+	//Cronjob()
+	Gorm()
 }
 
 func worker(id int, wg *sync.WaitGroup) {
