@@ -209,7 +209,8 @@ func main() {
 	//// wait for goroutine working done
 	//time.Sleep(5 * time.Second)
 
-	Pubsub()
+	//Pubsub()
+	Cronjob()
 }
 
 func worker(id int, wg *sync.WaitGroup) {
